@@ -19,7 +19,7 @@ struct(
 
 package Net::SMS::Web;
 
-$VERSION = '0.006';
+$VERSION = '0.007';
 
 use strict;
 
@@ -33,7 +33,6 @@ use LWP::UserAgent;
 use CGI::Enurl;
 use CGI::Lite;
 use URI;
-use Carp;
 
 #------------------------------------------------------------------------------
 #
@@ -148,7 +147,7 @@ sub action
     my $self = shift;
     my $action = shift;
 
-    croak "Action should be a Net::SMS::Web::Action object\n" 
+    die "Action should be a Net::SMS::Web::Action object\n" 
         unless ref( $action ) eq 'Net::SMS::Web::Action'
     ;
 
@@ -183,7 +182,7 @@ sub action
     }
     else
     {
-        croak "Unknown method $method - should be GET or POST\n";
+        die "Unknown method $method - should be GET or POST\n";
     }
 
     $request->header( 'Accept' => 'text/html' );
@@ -216,7 +215,7 @@ sub action
     }
     if ( $response->is_error )
     {
-        croak
+        die
             ref($self), ": ", $request->uri,
             " failed:\n\t", 
             $response->status_line, 

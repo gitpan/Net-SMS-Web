@@ -5,7 +5,6 @@ WriteMakefile(
     'NAME'		=> 'Net::SMS::Web',
     'VERSION_FROM'	=> 'Web.pm', # finds $VERSION
     'PREREQ_PM'		=> {
-        Carp            => undef,
         Class::Struct   => undef,
         LWP::UserAgent  => undef,
         CGI::Enurl      => undef,
