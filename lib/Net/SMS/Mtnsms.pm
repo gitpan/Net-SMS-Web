@@ -19,12 +19,12 @@ require Net::SMS::Web;
 
 =head1 NAME
 
-Net::SMS::Mntsms - a module to send SMS messages using the Mntsms web2sms
+Net::SMS::Mtnsms - a module to send SMS messages using the Mtnsms web2sms
 gateway (L<http://www.mtnsms.com/>).
 
 =head1 SYNOPSIS
 
-    my $sms = Net::SMS::Mntsms->new(
+    my $sms = Net::SMS::Mtnsms->new(
         autotruncate => 1,
         username => 'yourname',
         password => 'yourpassword',
@@ -41,14 +41,14 @@ gateway (L<http://www.mtnsms.com/>).
 
 =head1 DESCRIPTION
 
-A perl module to send SMS messages, using the Mntsms web2sms gateway. This
+A perl module to send SMS messages, using the Mtnsms web2sms gateway. This
 module will only work with mobile phone numbers that have been registered with
-Mntsms (L<http://www.mtnsms/>) and uses form submission to a URL that may be
+Mtnsms (L<http://www.mtnsms/>) and uses form submission to a URL that may be
 subject to change.
 
-There is a maximum length for SMS signature + message (160 for Mntsms). If the
+There is a maximum length for SMS signature + message (160 for Mtnsms). If the
 sum of signature and message lengths exceed this, the behaviour of the
-Net::SMS::Mntsms objects depends on the value of the 'autotruncate' argument to
+Net::SMS::Mtnsms objects depends on the value of the 'autotruncate' argument to
 the constructor. If this is a true value, then the signature / message will be
 truncated to 123 characters. If false, the object will throw an exception
 (croak).
@@ -108,12 +108,12 @@ $MAX_CHARS = 123;
 
 =head1 CONSTRUCTOR
 
-The constructor for Net::SMS::Mntsms takes the following arguments as hash
-values (see L<SYNOPSIS>):
+The constructor for Net::SMS::Mtnsms takes the following arguments as hash
+values (see L<"SYNOPSIS">):
 
 =head2 autotruncate (OPTIONAL)
 
-Mntsms has a upper limit on the length of the subject + message (123). If
+Mtnsms has a upper limit on the length of the subject + message (123). If
 autotruncate is true, subject and message are truncated to 123 if the sum of
 their lengths exceeds 160. The heuristic for this is simply to treat subject
 and message as a string and truncate it (i.e. if length(subject) >= 123 then
@@ -122,12 +122,12 @@ suggestion. The default for this is false.
 
 =head2 username (REQUIRED)
 
-The Mntsms username for the user (assuming that the user is already registered
+The Mtnsms username for the user (assuming that the user is already registered
 at L<http://www.mtnsms.com/>.
 
 =head2 password (REQUIRED)
 
-The Mntsms password for the user (assuming that the user is already registered
+The Mtnsms password for the user (assuming that the user is already registered
 at L<http://www.mtnsms.com/>.
 
 =head2 recipient (REQUIRED)

@@ -38,6 +38,7 @@ gateway (L<http://www.genie.co.uk/>).
     print "sending message to mobile number ", $sms->recipient();
 
     $sms->send_sms();
+    my $quota = $sms->quota();
 
 =head1 DESCRIPTION
 
@@ -65,7 +66,6 @@ truncated to 123 characters. If false, the object will throw an exception
 use vars qw(
     @ISA
     $VERSION 
-    $BASE_URL 
     $LOGIN_URL
     $SEND_URL 
     %REQUIRED_KEYS 
@@ -75,11 +75,10 @@ use vars qw(
 
 @ISA = qw( Net::SMS::Web );
 
-$VERSION = '0.001';
-$BASE_URL = 'http://www.genie.co.uk';
+$VERSION = '0.002';
 
-$SEND_URL = "/gmail/sms";
-$LOGIN_URL = "/login/doLogin";
+$SEND_URL = 'http://sendsms.genie.co.uk/cgi-bin/sms/send_sms.cgi';
+$LOGIN_URL = 'http://www.genie.co.uk/login/doLogin';
 
 %REQUIRED_KEYS = (
     username => 1,
@@ -108,7 +107,7 @@ $MAX_CHARS = 123;
 =head1 CONSTRUCTOR
 
 The constructor for Net::SMS::Genie takes the following arguments as hash
-values (see L<SYNOPSIS>):
+values (see L<SYNOPSIS|"SYNOPSIS">):
 
 =head2 autotruncate (OPTIONAL)
 
@@ -203,16 +202,18 @@ sub send_sms
     my $self = shift;
 
     $self->action( Net::SMS::Web::Action->new(
-        url => $BASE_URL . $LOGIN_URL, 
-        params => {
+        url     => $LOGIN_URL, 
+        method  => 'GET',
+        params  => {
             username => $self->{username},
             password => $self->{password},
             numTries => '',
         }
     ) );
     $self->action( Net::SMS::Web::Action->new(
-        url => $BASE_URL . $SEND_URL,
-        params => {
+        url     => $SEND_URL,
+        method  => 'POST',
+        params  => {
             RECIPIENT => $self->{recipient},
             SUBJECT => $self->{subject} || '',
             MESSAGE => $self->{message},
@@ -221,6 +222,28 @@ sub send_sms
             action => 'Send',
         }
     ) );
+    my $status = $self->param( 'status' );
+    unless ( $status eq 'Your message has been sent successfully.' )
+    {
+        die "Failed to send SMS message: $status\n";
+    }
+    my $quota = $self->param( 'quota' );
+    ( $self->{quota} ) = 
+        $quota =~ /You have (\d+) messages left to send this month./
+    ;
+}
+
+=head2 quota
+
+This method returns the number of messages remaining in your months quota. Only
+works after send_sms has be called successfully.
+
+=cut
+
+sub quota
+{
+    my $self = shift;
+    return $self->{quota};
 }
 
 sub _check_length

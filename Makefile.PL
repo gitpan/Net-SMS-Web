@@ -6,9 +6,13 @@ WriteMakefile(
     'VERSION_FROM'	=> 'lib/Net/SMS/Web.pm', # finds $VERSION
     'PREREQ_PM'		=> {
         Carp            => undef,
-        LWP::UserAgent  => 1.73,
-        CGI::Enurl      => 1.06,
-        URI             => 1.09,
-        Term::ReadKey   => 2.14,
+        LWP::UserAgent  => undef,
+        CGI::Enurl      => undef,
+        URI             => undef,
+        Term::ReadKey   => undef,
+        File::Find      => undef,
+        CGI::Lite       => undef,
+        Class::Struct   => undef,
+
     }, # e.g., Module::Name => 1.1
 );

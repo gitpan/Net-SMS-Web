@@ -11,14 +11,12 @@ require v5.6.0;
 
 use Term::ReadKey;
 use Net::SMS::Genie;
-use Net::SMS::Mtnsms;
 
 print "1..1\n";
 
 $|++;
 
 my %prompt = (
-    module => "Enter SMS service (Mtnsms / Genie): ",
     username => "Enter username: ",
     password => "Enter password: ",
     recipient => "Enter recipient mobile number: ",
@@ -27,7 +25,7 @@ my %prompt = (
 
 my %args;
 
-for ( qw( module username password recipient message ) )
+for ( qw( username password recipient message ) )
 {
     ReadMode 'noecho' if $_ eq 'password';
     print $prompt{$_}; 
@@ -40,11 +38,13 @@ for ( qw( module username password recipient message ) )
     }
 }
 
+$args{recipient} =~ s/\D//g;
+
 eval {
-    my $module = delete( $args{module} );
-    my $sms = eval "Net::SMS::$module->new( %args )";
+    my $sms = Net::SMS::Genie->new( %args );
     $sms->verbose( 1 );
     $sms->send_sms();
+    print STDERR "You have ", $sms->quota(), " messages left in your monthly quota\n"
 };
 
 if ( $@ )
