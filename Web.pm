@@ -19,7 +19,7 @@ struct(
 
 package Net::SMS::Web;
 
-$VERSION = '0.008';
+$VERSION = '0.009';
 
 use strict;
 use warnings;

@@ -5,10 +5,10 @@ WriteMakefile(
     'NAME'		=> 'Net::SMS::Web',
     'VERSION_FROM'	=> 'Web.pm', # finds $VERSION
     'PREREQ_PM'		=> {
-        Class::Struct   => undef,
-        LWP::UserAgent  => undef,
-        CGI::Enurl      => undef,
-        URI             => undef,
-        CGI::Lite       => undef,
+        Class::Struct   => 0,
+        LWP::UserAgent  => 0,
+        CGI::Enurl      => 0,
+        URI             => 0,
+        CGI::Lite       => 0,
     }, # e.g., Module::Name => 1.1
 );
