@@ -4,6 +4,6 @@ use strict;
 use Test;
 BEGIN { plan tests => 1 }
 
-use Net::SMS::Genie;
+use Net::SMS::Web;
 ok(1);
 exit;
