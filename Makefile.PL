@@ -3,16 +3,13 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'		=> 'Net::SMS::Web',
-    'VERSION_FROM'	=> 'lib/Net/SMS/Web.pm', # finds $VERSION
+    'VERSION_FROM'	=> 'Web.pm', # finds $VERSION
     'PREREQ_PM'		=> {
         Carp            => undef,
+        Class::Struct   => undef,
         LWP::UserAgent  => undef,
         CGI::Enurl      => undef,
         URI             => undef,
-        Term::ReadKey   => undef,
-        File::Find      => undef,
         CGI::Lite       => undef,
-        Class::Struct   => undef,
-
     }, # e.g., Module::Name => 1.1
 );

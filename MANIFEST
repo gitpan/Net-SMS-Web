@@ -1,6 +1,3 @@
-lib/Net/SMS/Web.pm
-lib/Net/SMS/Mtnsms.pm
-lib/Net/SMS/Genie.pm
+Web.pm
 MANIFEST
 Makefile.PL
-test.pl
