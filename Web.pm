@@ -19,7 +19,7 @@ struct(
 
 package Net::SMS::Web;
 
-$VERSION = '0.011';
+$VERSION = '0.014';
 
 use strict;
 use warnings;
@@ -98,7 +98,6 @@ sub new
     my $class = shift;
     my $self = bless {}, $class;
     $self->{COOKIES} = {};
-    $self->{PARAMS} = {};
     return $self;
 }
 
@@ -111,7 +110,6 @@ sub _get_cookies
     {
         if ( /^(.*?)=(.*)$/ )
         {
-            print STDERR "COOKIE: $1 = '$2'\n" if $self->{verbose};
             $self->{COOKIES}{$1} = $2;
         }
     }
@@ -142,19 +140,16 @@ sub cookie
     return $self->{COOKIES}{$key};
 }
 
-=head2 param( $key )
+=head2 response()
 
-This method gets the value of a parameter that has been set either in a
-previous action, or in a redirected Location resulting from one of those
-actions.
+This method gets the body of the response to the previous action.
 
 =cut
 
-sub param
+sub response
 {
     my $self = shift;
-    my $key = shift;
-    return $self->{PARAMS}{$key};
+    return $self->{RESPONSE};
 }
 
 =head2 action
@@ -176,20 +171,10 @@ sub action
     ;
 
     my $url = $action->url;
-    my %params_hash = %{ $action->params };
-    if ( my ( $root, $qs ) = $url =~ /(.*)\?(.*)/ )
-    {
-        for ( split /&/, $qs )
-        {
-            my ( $key, $val ) = map { url_decode( $_ ) } split /=/, $_;
-            $params_hash{$key} = $val;
-        }
-        $url = $root;
-    }
+    my %params = $action->params ? %{ $action->params } : ();
     my $method = $action->method || 'GET';
     my $agent = $action->agent || $DEFAULT_AGENT;
-    $self->{PARAMS} = { %{$self->{PARAMS}}, %params_hash };
-    my $params = enurl \%params_hash;
+    my $params = enurl \%params;
 
     my $request;
 
@@ -210,6 +195,7 @@ sub action
     }
 
     $request->header( 'Accept' => 'text/html' );
+    $request->header( 'Referer' => $self->{REFERER} ) if $self->{REFERER};
     $request->header( 
         'Cookie' => 
             join( ';', 
@@ -221,27 +207,18 @@ sub action
     {
         my $r = $request->as_string();
         $r =~ s/^(\S)/\t$1/gm;
-        print STDERR "REQUEST HEADER\n$r\n";
-    }
-    if ( $self->{verbose} and $self->{PARAMS} )
-    {
-        print STDERR "PARAMS\n";
-        print STDERR 
-            map { "\t$_ = $self->{PARAMS}{$_}\n" } 
-            grep { defined $self->{PARAMS}{$_} }
-            keys %{$self->{PARAMS}}
-        ;
-        print STDERR "\n";
+        print STDERR "REQUEST\n$r\n\n";
     }
     my $ua = LWP::UserAgent->new;
     $ua->env_proxy();
     $ua->agent( $agent );
     my $response = $ua->simple_request( $request );
+    $self->{RESPONSE} = $response->content();
+    $self->{REFERER} = $url;
     if ( $self->{verbose} )
     {
         my $r = $response->headers_as_string();
         $r =~ s/^/\t/gm;
-        print STDERR "RESPONSE HEADER\n$r\n\nRESPONSE CODE\n", $response->message, " (", $response->code, ")\n";
     }
     if ( $response->is_error )
     {
@@ -251,6 +228,13 @@ sub action
             $response->status_line, 
             "\n"
         ;
+    }
+    if ( $self->{audit_trail} and -d $self->{audit_trail} )
+    {
+        $self->{audit_count}++;
+        my $audit_file = "$self->{audit_trail}/$self->{audit_count}.html";
+        open( FH, ">$audit_file" ) and print FH $self->{RESPONSE};
+        close( FH );
     }
     $self->_get_cookies( $response );
     my $location = $response->header( 'Location' );
