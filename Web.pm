@@ -19,7 +19,7 @@ struct(
 
 package Net::SMS::Web;
 
-$VERSION = '0.009';
+$VERSION = '0.011';
 
 use strict;
 use warnings;
@@ -44,18 +44,22 @@ use URI;
 =head1 NAME
 
 Net::SMS::Web - a generic module for sending SMS messages using web2sms
-gateways (e.g. L<http://www.mtnsms.com/> or L<http://www.genie.co.uk/>).
+gateways (e.g. L<http://www.mtnsms.com/> or L<http://www.o2.co.uk/>).
 
 =head1 DESCRIPTION
 
 A perl module to send SMS messages, using web2sms gateways. This module
-should be subclassed for a particular gateway (see L<Net::SMS::Genie> or
+should be subclassed for a particular gateway (see L<Net::SMS::O2> or
 L<Net::SMS::Mtnsms>).
 
 When you subclass this class, you need to make a series of calls to the
 L<action> method, passing a L<Net::SMS::Web::Action> object which should
 correspond to the web form acions that are required to send an SMS message via
 the web gateway in question.
+
+The HTTP requests are sent using the LWP::UserAgent module. If you are using a
+proxy, you may need to set the HTTP_PROXY environment variable for this to
+work (see L<LWP::UserAgent>).
 
 =cut
 
@@ -93,7 +97,7 @@ sub new
 {
     my $class = shift;
     my $self = bless {}, $class;
-    $self->{COOKIES} = [];
+    $self->{COOKIES} = {};
     $self->{PARAMS} = {};
     return $self;
 }
@@ -103,10 +107,14 @@ sub _get_cookies
     my $self = shift;
     my $response = shift;
 
-    push(
-        @{$self->{COOKIES}},
-        reverse grep s{;.*}{}, $response->header( 'Set-Cookie' )
-    );
+    for ( grep s{;.*}{}, $response->header( 'Set-Cookie' ) )
+    {
+        if ( /^(.*?)=(.*)$/ )
+        {
+            print STDERR "COOKIE: $1 = '$2'\n" if $self->{verbose};
+            $self->{COOKIES}{$1} = $2;
+        }
+    }
 }
 
 #------------------------------------------------------------------------------
@@ -118,6 +126,21 @@ sub _get_cookies
 =head1 METHODS
 
 =cut
+
+=head2 cookie( $key )
+
+This method gets the value of a cookie that has been set either in a
+previous action, or in a redirected Location resulting from one of those
+actions.
+
+=cut
+
+sub cookie
+{
+    my $self = shift;
+    my $key = shift;
+    return $self->{COOKIES}{$key};
+}
 
 =head2 param( $key )
 
@@ -187,8 +210,12 @@ sub action
     }
 
     $request->header( 'Accept' => 'text/html' );
-    $request->header( 'Cookie' => join( ';', @{$self->{COOKIES}} ) )
-        if $self->{COOKIES} and @{$self->{COOKIES}}
+    $request->header( 
+        'Cookie' => 
+            join( ';', 
+                map { "$_=$self->{COOKIES}{$_}" } keys %{$self->{COOKIES}} 
+            )
+        ) if $self->{COOKIES} and %{$self->{COOKIES}}
     ;
     if ( $self->{verbose} )
     {
@@ -196,11 +223,13 @@ sub action
         $r =~ s/^(\S)/\t$1/gm;
         print STDERR "REQUEST HEADER\n$r\n";
     }
-    if ( $self->{verbose} )
+    if ( $self->{verbose} and $self->{PARAMS} )
     {
         print STDERR "PARAMS\n";
         print STDERR 
-            map { "\t$_ = $self->{PARAMS}{$_}\n" } keys %{$self->{PARAMS}}
+            map { "\t$_ = $self->{PARAMS}{$_}\n" } 
+            grep { defined $self->{PARAMS}{$_} }
+            keys %{$self->{PARAMS}}
         ;
         print STDERR "\n";
     }
@@ -237,6 +266,13 @@ sub action
 # More POD ...
 #
 #------------------------------------------------------------------------------
+
+=head1 BUGS
+
+Bugs can be submitted to the CPAN RT bug tracker either via email
+(bug-net-sms-web@rt.cpan.org) or web
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SMS-Web>. There is also a
+sourceforge project at L<http://sourceforge.net/projects/net-sms-web/>.
 
 =head1 AUTHOR
 
